@@ -1,5 +1,4 @@
 absl_py==2.1.0
-delf.egg==info
 h5py==3.7.0
 numpy==1.23.5
 object_detection==0.0.3
