@@ -83,10 +83,10 @@ flags.DEFINE_boolean('generate_train_validation_splits', False,
 flags.DEFINE_float('validation_split_size', 0.2,
                    '(Optional) The size of the VALIDATION split as a fraction'
                    'of the train dataset.')
-flags.DEFINE_integer('seed', 0,
-                     '(Optional) The seed to be used while shuffling the train'
-                     'dataset when generating the TRAIN and VALIDATION splits.'
-                     'Recommended for splits reproducibility purposes.')
+# flags.DEFINE_integer('seed', 0,
+                     # '(Optional) The seed to be used while shuffling the train'
+                     # 'dataset when generating the TRAIN and VALIDATION splits.'
+                     # 'Recommended for splits reproducibility purposes.')
 
 _FILE_IDS_KEY = 'file_ids'
 _IMAGE_PATHS_KEY = 'image_paths'
