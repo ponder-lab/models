@@ -165,7 +165,8 @@ def _get_clean_train_image_files_and_labels(csv_path, image_dir):
   file_ids = []
   labels = []
   for _, value in images.items():
-    image_paths.append(value['image_path'])
+    if 'image_path' in value:
+        image_paths.append(value['image_path'])
     file_ids.append(value['file_id'])
     labels.append(value['label'])
 
