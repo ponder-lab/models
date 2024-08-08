@@ -37,6 +37,9 @@ from delf.python.datasets.google_landmarks_dataset import googlelandmarks as gld
 from delf.python.training.model import delf_model
 from delf.python.training.model import delg_model
 
+from scripts.utils import write_csv
+import timeit
+
 FLAGS = flags.FLAGS
 
 flags.DEFINE_boolean('debug', False, 'Debug mode.')
@@ -421,6 +424,9 @@ def main(argv):
     def distributed_validation_step(dataset_inputs):
       return strategy.run(validation_step, args=(dataset_inputs,))
 
+    start_time = timeit.default_timer()
+    skipped_time = 0
+
     # ------------------------------------------------------------
     # *** TRAIN LOOP ***
     with summary_writer.as_default():
@@ -431,13 +437,17 @@ def main(argv):
         # TODO(dananghel): try to load pretrained weights at backbone creation.
         # Load pretrained weights for ResNet50 trained on ImageNet.
         if (FLAGS.imagenet_checkpoint is not None) and (not global_step_value):
+          print_time = timeit.default_timer()
           logging.info('Attempting to load ImageNet pretrained weights.')
+          skipped_time += timeit.default_timer() - print_time
           input_batch = next(train_iter)
           _, _, _ = distributed_train_step(input_batch)
           model.backbone.restore_weights(FLAGS.imagenet_checkpoint)
           logging.info('Done.')
         else:
+          print_time = timeit.default_timer()
           logging.info('Skip loading ImageNet pretrained weights.')
+          skipped_time += timeit.default_timer() - print_time
         if FLAGS.debug:
           model.backbone.log_weights()
 
@@ -449,8 +459,10 @@ def main(argv):
             input_batch = next(train_iter)
           except tf.errors.OutOfRangeError:
             # Break if we run out of data in the dataset.
+            print_time = timeit.default_timer()
             logging.info('Stopping training at global step %d, no more data',
                          global_step_value)
+            skipped_time += timeit.default_timer() - print_time
             break
 
           # Set learning rate and run the training step over num_gpu gpus.
@@ -464,6 +476,7 @@ def main(argv):
           global_step_value = global_step.numpy()
 
           # LR, losses and accuracies summaries.
+          print_time = timeit.default_timer()
           tf.summary.scalar(
               'learning_rate', optimizer.learning_rate, step=global_step)
           tf.summary.scalar(
@@ -484,7 +497,7 @@ def main(argv):
               step=global_step)
 
           # Summary for number of global steps taken per second.
-          current_time = time.time()
+          current_time = timeit.default_timer()
           if (last_summary_step_value is not None and
               last_summary_time is not None):
             tf.summary.scalar(
@@ -502,6 +515,7 @@ def main(argv):
               print(global_step.numpy())
               print('desc:', desc_dist_loss.numpy())
               print('attn:', attn_dist_loss.numpy())
+          skipped_time += timeit.default_timer() - print_time
 
           # Validate once in {eval_interval*n, n \in N} steps.
           if global_step_value % eval_interval == 0:
@@ -511,9 +525,12 @@ def main(argv):
                 desc_validation_result, attn_validation_result = (
                     distributed_validation_step(validation_batch))
               except tf.errors.OutOfRangeError:
+                print_time = timeit.default_timer()
                 logging.info('Stopping eval at batch %d, no more data', i)
+                skipped_time += timeit.default_timer() - print_time
                 break
 
+            print_time = timeit.default_timer()
             # Log validation results to tensorboard.
             tf.summary.scalar(
                 'validation/desc', desc_validation_result, step=global_step)
@@ -527,12 +544,14 @@ def main(argv):
             if FLAGS.debug:
               print('Validation: desc:', desc_validation_result.numpy())
               print('          : attn:', attn_validation_result.numpy())
+          skipped_time += timeit.default_timer() - print_time
 
           # Save checkpoint once (each save_interval*n, n \in N) steps, or if
           # this is the last iteration.
           # TODO(andrearaujo): save only in one of the two ways. They are
           # identical, the only difference is that the manager adds some extra
           # prefixes and variables (eg, optimizer variables).
+          save_time = timeit.default_timer()
           if (global_step_value % save_interval
               == 0) or (global_step_value >= max_iters):
             save_path = manager.save(checkpoint_number=global_step_value)
@@ -542,15 +561,20 @@ def main(argv):
             model.save_weights(file_path, save_format='tf')
             logging.info('Saved weights (%d) at %s', global_step_value,
                          file_path)
+          skipped_time += timeit.default_timer() - save_time
 
           # Reset metrics for next step.
+          print_time = timeit.default_timer()
           desc_train_accuracy.reset_states()
           attn_train_accuracy.reset_states()
           desc_validation_loss.reset_states()
           attn_validation_loss.reset_states()
           desc_validation_accuracy.reset_states()
           attn_validation_accuracy.reset_states()
+          skipped_time += timeit.default_timer() - print_time
 
+    time = timeit.default_timer() - start_time - skipped_time
+    print('Training time:', time)
     logging.info('Finished training for %d steps.', max_iters)
 
 
