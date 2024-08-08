@@ -137,6 +137,7 @@ class GeMPooling2D(tf.keras.layers.Layer):
     }
     self.data_format = data_format_conv[data_format]
 
+  @tf.function
   def call(self, x):
     tmp = tf.pow(x, self.power)
     tmp = tf.nn.avg_pool(tmp, self.pool_size, self.strides, self.padding,
@@ -145,6 +146,7 @@ class GeMPooling2D(tf.keras.layers.Layer):
     return out
 
 
+@tf.function
 def mac(x, axis=None):
   """Performs global max pooling (MAC).
 
@@ -160,6 +162,7 @@ def mac(x, axis=None):
   return tf.reduce_max(x, axis=axis, keepdims=False)
 
 
+@tf.function
 def spoc(x, axis=None):
   """Performs average pooling (SPoC).
 

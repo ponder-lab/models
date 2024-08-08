@@ -67,6 +67,7 @@ class AttentionModel(tf.keras.Model):
         name='attn_conv2')
     self.activation_layer = layers.Activation('softplus')
 
+  @tf.function
   def call(self, inputs, targets=None, training=True):
     x = self.conv1(inputs)
     x = self.bn_conv1(x, training=training)
@@ -112,6 +113,7 @@ class AutoencoderModel(tf.keras.Model):
         padding='same',
         name='autoenc_conv2')
 
+  @tf.function
   def call(self, inputs):
     dim_reduced_features = self.conv1(inputs)
     dim_expanded_features = self.conv2(dim_reduced_features)
@@ -193,6 +195,7 @@ class Delf(tf.keras.Model):
     self.attn_classification = layers.Dense(
         num_classes, activation=None, kernel_regularizer=None, name='att_fc')
 
+  @tf.function
   def global_and_local_forward_pass(self, images, training=True):
     """Run a forward to calculate global descriptor and attention prelogits.
 

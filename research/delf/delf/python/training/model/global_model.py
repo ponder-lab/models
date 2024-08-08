@@ -166,6 +166,7 @@ class GlobalFeatureNet(tf.keras.Model):
     self.feature_extractor = net_in
     self.normalize = normalization.L2Normalization()
 
+  @tf.function
   def call(self, x, training=False):
     """Invokes the GlobalFeatureNet instance.
 

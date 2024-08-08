@@ -97,6 +97,7 @@ class DelgTest(tf.test.TestCase, parameterized.TestCase):
       ('block3_stridesTrue', True),
       ('block3_stridesFalse', False),
   )
+  @tf.function
   def test_train_step(self, block3_strides):
     image_size = 321
     num_classes = 1000
@@ -120,6 +121,7 @@ class DelgTest(tf.test.TestCase, parameterized.TestCase):
     loss_object = tf.keras.losses.SparseCategoricalCrossentropy(
         from_logits=True, reduction=tf.keras.losses.Reduction.NONE)
 
+    @tf.function
     def compute_loss(labels, predictions):
       per_example_loss = loss_object(labels, predictions)
       return tf.nn.compute_average_loss(

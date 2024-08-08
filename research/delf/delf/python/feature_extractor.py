@@ -113,6 +113,7 @@ def ApplyPcaAndWhitening(data,
   return output
 
 
+@tf.function
 def PostProcessDescriptors(descriptors, use_pca, pca_parameters=None):
   """Post-process descriptors.
 
@@ -147,6 +148,7 @@ def PostProcessDescriptors(descriptors, use_pca, pca_parameters=None):
   return final_descriptors
 
 
+@tf.function
 def DelfFeaturePostProcessing(boxes, descriptors, use_pca, pca_parameters=None):
   """Extract DELF features from input image.
 

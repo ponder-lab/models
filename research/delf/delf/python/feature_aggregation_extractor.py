@@ -293,6 +293,7 @@ class ExtractAggregatedRepresentation(object):
         true_fn=_ComputeVladNonEmptyFeatures,
         false_fn=_ComputeVladEmptyFeatures)
 
+  @tf.function
   def _ComputeRvlad(self,
                     features,
                     num_features_per_region,
@@ -376,6 +377,7 @@ class ExtractAggregatedRepresentation(object):
         true_fn=_ComputeRvladNonEmptyRegions,
         false_fn=_ComputeRvladEmptyRegions)
 
+  @tf.function
   def _PerCentroidNormalization(self, unnormalized_vector):
     """Perform per-centroid normalization.
 
@@ -433,6 +435,7 @@ class ExtractAggregatedRepresentation(object):
 
     return normalized_residuals, visual_words
 
+  @tf.function
   def _ComputeRasmk(self,
                     features,
                     num_features_per_region,

@@ -82,6 +82,7 @@ class DelfTest(tf.test.TestCase, parameterized.TestCase):
     loss_object = tf.keras.losses.SparseCategoricalCrossentropy(
         from_logits=True, reduction=tf.keras.losses.Reduction.NONE)
 
+    @tf.function
     def compute_loss(labels, predictions):
       per_example_loss = loss_object(labels, predictions)
       return tf.nn.compute_average_loss(
